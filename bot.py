@@ -101,6 +101,11 @@ async def on_ready():
     print(f'{bot.user} подключился к Discord!')
     print(f'Бот работает на {len(bot.guilds)} серверах')
     
+    # Выводим список всех загруженных команд
+    print(f'📋 Загружено команд: {len(bot.commands)}')
+    for cmd in bot.commands:
+        print(f'  - {cmd.name} (алиасы: {cmd.aliases})')
+    
     # Синхронизируем команды (для autocomplete)
     try:
         synced = await tree.sync()
@@ -461,14 +466,18 @@ async def volume(ctx, volume: int = None):
 
 @bot.command(name='setvoicechannel', aliases=['svc'])
 async def set_voice_channel(ctx, channel: discord.VoiceChannel = None):
-    """Установка исходного голосового канала для автоматического создания новых каналов"""
-    if not channel:
-        await ctx.send('❌ Укажите голосовой канал! Использование: `!setvoicechannel #канал`')
-        return
+    """Установка исходного голосового канала для автоматического создания новых каналов
     
-    if not isinstance(channel, discord.VoiceChannel):
-        await ctx.send('❌ Указанный канал не является голосовым!')
-        return
+    Использование: !setvoicechannel #канал
+    """
+    if channel is None:
+        # Если канал не указан, пытаемся получить канал автора команды
+        if ctx.author.voice and ctx.author.voice.channel:
+            channel = ctx.author.voice.channel
+        else:
+            await ctx.send('❌ Укажите голосовой канал! Использование: `!setvoicechannel #канал`\n'
+                          'Или зайдите в голосовой канал и используйте команду без параметров.')
+            return
     
     source_voice_channels[ctx.guild.id] = channel.id
     await ctx.send(f'✅ Исходный голосовой канал установлен: {channel.mention}\n'
