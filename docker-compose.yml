@@ -5,11 +5,16 @@ services:
     build: .
     container_name: discord-bot
     restart: unless-stopped
-    # Используем .env файл для переменных окружения
-    env_file:
-      - .env
+    # Используем .env файл для переменных окружения (опционально)
+    # Раскомментируйте следующую строку, если файл .env существует
+    # env_file:
+    #   - .env
     environment:
-      # Если .env файл не используется, можно задать переменные напрямую
+      # Переменные окружения из .env файла или из системных переменных
+      # Если .env файл не существует, можно задать переменные напрямую:
+      # 1. Через export (Linux/Mac): export DISCORD_TOKEN=ваш_токен
+      # 2. Через set (Windows PowerShell): $env:DISCORD_TOKEN="ваш_токен"
+      # 3. Или создайте файл .env (см. .env.example)
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}
@@ -25,4 +30,3 @@ services:
     #       memory: 512M
     #     reservations:
     #       memory: 256M
-

@@ -11,12 +11,38 @@
    - Linux: https://docs.docker.com/engine/install/
 
 2. **Создайте файл `.env`** с переменными окружения:
+
+**Вариант А: Создайте `.env` файл вручную**
 ```bash
+# Скопируйте пример файла (если есть .env.example)
+cp .env.example .env
+
+# Или создайте файл .env вручную и добавьте:
 DISCORD_TOKEN=ваш_токен_бота
 SPOTIFY_CLIENT_ID=ваш_client_id (опционально)
 SPOTIFY_CLIENT_SECRET=ваш_client_secret (опционально)
 SOURCE_CHANNEL_ID=0 (опционально)
 TARGET_CHANNEL_ID=0 (опционально)
+```
+
+**Вариант Б: Используйте переменные окружения системы**
+```bash
+# Linux/Mac:
+export DISCORD_TOKEN=ваш_токен_бота
+export SPOTIFY_CLIENT_ID=ваш_client_id
+export SPOTIFY_CLIENT_SECRET=ваш_client_secret
+
+# Windows PowerShell:
+$env:DISCORD_TOKEN="ваш_токен_бота"
+$env:SPOTIFY_CLIENT_ID="ваш_client_id"
+$env:SPOTIFY_CLIENT_SECRET="ваш_client_secret"
+```
+
+**Вариант В: Создайте `.env` файл и раскомментируйте `env_file` в `docker-compose.yml`**
+Если вы создали `.env` файл, раскомментируйте строки в `docker-compose.yml`:
+```yaml
+env_file:
+  - .env
 ```
 
 3. **Запустите бота через Docker Compose**:
