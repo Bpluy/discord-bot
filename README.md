@@ -4,6 +4,52 @@
 
 ## Установка
 
+### Вариант 1: Установка с Docker (рекомендуется)
+
+1. **Установите Docker и Docker Compose**:
+   - Windows/Mac: https://www.docker.com/products/docker-desktop
+   - Linux: https://docs.docker.com/engine/install/
+
+2. **Создайте файл `.env`** с переменными окружения:
+```bash
+DISCORD_TOKEN=ваш_токен_бота
+SPOTIFY_CLIENT_ID=ваш_client_id (опционально)
+SPOTIFY_CLIENT_SECRET=ваш_client_secret (опционально)
+SOURCE_CHANNEL_ID=0 (опционально)
+TARGET_CHANNEL_ID=0 (опционально)
+```
+
+3. **Запустите бота через Docker Compose**:
+```bash
+docker-compose up -d
+```
+
+4. **Просмотр логов**:
+```bash
+docker-compose logs -f
+```
+
+5. **Остановка бота**:
+```bash
+docker-compose down
+```
+
+**Или используйте Docker напрямую:**
+```bash
+# Соберите образ
+docker build -t discord-bot .
+
+# Запустите контейнер
+docker run -d --name discord-bot \
+  -e DISCORD_TOKEN=ваш_токен_бота \
+  -e SPOTIFY_CLIENT_ID=ваш_client_id \
+  -e SPOTIFY_CLIENT_SECRET=ваш_client_secret \
+  --restart unless-stopped \
+  discord-bot
+```
+
+### Вариант 2: Локальная установка
+
 1. Установите Python 3.8 или выше
 2. Установите зависимости:
 ```bash
@@ -59,16 +105,48 @@ SPOTIFY_CLIENT_SECRET=ваш_client_secret (опционально)
 
 ## Использование
 
+### С Docker:
+1. Запустите бота:
+```bash
+docker-compose up -d
+```
+
+2. Проверьте, что бот запущен:
+```bash
+docker-compose ps
+docker-compose logs -f
+```
+
+### Без Docker:
 1. Запустите бота:
 ```bash
 python bot.py
 ```
 
-2. Настройка каналов для повтора:
-   - Через команду: `!setup #исходный_канал #целевой_канал`
-   - Или в `.env` файле укажите `SOURCE_CHANNEL_ID` и `TARGET_CHANNEL_ID`
+### Настройка:
+- Настройка каналов для повтора:
+  - Через команду: `!setup #исходный_канал #целевой_канал`
+  - Или в `.env` файле (или переменных окружения Docker) укажите `SOURCE_CHANNEL_ID` и `TARGET_CHANNEL_ID`
 
-3. Если `TARGET_CHANNEL_ID` не указан, бот будет повторять сообщения в том же канале
+- Если `TARGET_CHANNEL_ID` не указан, бот будет повторять сообщения в том же канале
+
+### Управление Docker контейнером:
+```bash
+# Остановка
+docker-compose stop
+
+# Запуск
+docker-compose start
+
+# Перезапуск
+docker-compose restart
+
+# Просмотр логов
+docker-compose logs -f
+
+# Остановка и удаление контейнера
+docker-compose down
+```
 
 ## Команды
 

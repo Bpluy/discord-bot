@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  discord-bot:
+    build: .
+    container_name: discord-bot
+    restart: unless-stopped
+    # Используем .env файл для переменных окружения
+    env_file:
+      - .env
+    environment:
+      # Если .env файл не используется, можно задать переменные напрямую
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID:-}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET:-}
+      - SOURCE_CHANNEL_ID=${SOURCE_CHANNEL_ID:-0}
+      - TARGET_CHANNEL_ID=${TARGET_CHANNEL_ID:-0}
+    volumes:
+      # Опционально: для сохранения данных или кэша
+      - ./logs:/app/logs
+    # Опционально: ограничение ресурсов
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
+    #     reservations:
+    #       memory: 256M
+
