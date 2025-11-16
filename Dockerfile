@@ -22,6 +22,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Копируем код приложения
 COPY bot.py .
+COPY web_panel.py .
+
+# Копируем шаблоны веб-панели
+COPY templates/ ./templates/
 
 # Создаём пользователя без прав root для безопасности
 RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /app

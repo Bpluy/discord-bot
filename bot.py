@@ -50,6 +50,10 @@ music_queues = {}
 # Ключ: guild_id, Значение: voice_channel_id
 source_voice_channels = {}
 
+# Множество для хранения созданных ботом голосовых каналов
+# Ключ: guild_id, Значение: set(channel_id)
+created_voice_channels = {}
+
 # Настройки yt-dlp
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -538,6 +542,10 @@ async def on_voice_state_update(member, before, after):
     
     # Проверяем, установлен ли исходный канал для этого сервера
     if guild_id not in source_voice_channels:
+        # Проверяем удаление пустых созданных каналов даже если исходный канал не установлен
+        # (на случай, если настройка была удалена, но каналы остались)
+        if before and before.channel:
+            await check_and_delete_empty_channel(before.channel, guild_id)
         return
     
     source_channel_id = source_voice_channels[guild_id]
@@ -558,6 +566,11 @@ async def on_voice_state_update(member, before, after):
                 user_limit=0  # Без ограничения пользователей
             )
             
+            # Добавляем канал в список созданных каналов
+            if guild_id not in created_voice_channels:
+                created_voice_channels[guild_id] = set()
+            created_voice_channels[guild_id].add(new_channel.id)
+            
             # Перемещаем пользователя в новый канал
             await member.move_to(new_channel)
             
@@ -571,6 +584,65 @@ async def on_voice_state_update(member, before, after):
             print(f'❌ Ошибка при создании канала или перемещении пользователя: {e}')
         except Exception as e:
             print(f'❌ Неожиданная ошибка: {e}')
+    
+    # Проверяем, покинул ли пользователь канал, который был создан ботом
+    if before and before.channel:
+        await check_and_delete_empty_channel(before.channel, guild_id)
+
+
+async def check_and_delete_empty_channel(channel, guild_id):
+    """Проверяет, является ли канал пустым созданным каналом, и удаляет его если да"""
+    # Проверяем, был ли этот канал создан ботом
+    if guild_id not in created_voice_channels:
+        return
+    
+    if channel.id not in created_voice_channels[guild_id]:
+        return
+    
+    # Проверяем, пуст ли канал (только боты или вообще никого)
+    members = [m for m in channel.members if not m.bot]
+    
+    if len(members) == 0:
+        try:
+            # Удаляем канал из списка созданных
+            created_voice_channels[guild_id].discard(channel.id)
+            # Если список пуст, можно удалить ключ (опционально)
+            if not created_voice_channels[guild_id]:
+                del created_voice_channels[guild_id]
+            
+            # Удаляем канал
+            await channel.delete()
+            print(f'🗑️ Удалён пустой голосовой канал {channel.name}')
+        except discord.Forbidden:
+            print(f'❌ Нет прав для удаления голосового канала {channel.name}')
+        except discord.HTTPException as e:
+            print(f'❌ Ошибка при удалении канала {channel.name}: {e}')
+        except Exception as e:
+            print(f'❌ Неожиданная ошибка при удалении канала: {e}')
+
+
+# Инициализация веб-панели (опционально)
+WEB_PANEL_ENABLED = os.getenv('WEB_PANEL_ENABLED', 'false').lower() == 'true'
+WEB_PANEL_PORT = int(os.getenv('WEB_PANEL_PORT', 5000))
+
+if WEB_PANEL_ENABLED:
+    try:
+        from web_panel import init_web_panel, run_web_panel
+        import threading
+        
+        def start_web_panel():
+            """Запуск веб-панели в отдельном потоке"""
+            init_web_panel(bot, music_queues, source_voice_channels, created_voice_channels)
+            run_web_panel(port=WEB_PANEL_PORT)
+        
+        # Запускаем веб-панель в отдельном потоке
+        web_thread = threading.Thread(target=start_web_panel, daemon=True)
+        web_thread.start()
+        print(f'✅ Веб-панель запущена на http://localhost:{WEB_PANEL_PORT}')
+    except ImportError:
+        print('⚠️ Flask не установлен. Веб-панель недоступна. Установите: pip install flask flask-cors')
+    except Exception as e:
+        print(f'⚠️ Ошибка запуска веб-панели: {e}')
 
 
 # Запуск бота
