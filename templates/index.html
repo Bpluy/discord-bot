@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot - Веб-панель управления</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .status.online {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status.offline {
+            background: #f44336;
+            color: white;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .guild-selector {
+            margin-bottom: 20px;
+        }
+        
+        .guild-selector select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .music-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .volume-control input[type="range"] {
+            flex: 1;
+        }
+        
+        .volume-value {
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .queue-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .queue-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .current-track {
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .current-track h3 {
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-item {
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        
+        .info-item strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .voice-channels-list {
+            list-style: none;
+        }
+        
+        .voice-channel-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Discord Bot - Веб-панель управления</h1>
+            <div id="bot-status">
+                <span class="status offline">Загрузка...</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Статус бота</h2>
+            <div id="bot-info" class="loading">Загрузка информации...</div>
+        </div>
+        
+        <div class="card">
+            <h2>🎮 Управление</h2>
+            <div class="guild-selector">
+                <select id="guild-select">
+                    <option value="">Выберите сервер...</option>
+                </select>
+            </div>
+            
+            <div id="music-controls" style="display: none;">
+                <div class="current-track" id="current-track">
+                    <h3>Текущий трек</h3>
+                    <p id="track-name">Не воспроизводится</p>
+                </div>
+                
+                <div class="music-controls">
+                    <button class="btn btn-success" id="btn-resume" onclick="controlMusic('resume')">▶️ Возобновить</button>
+                    <button class="btn btn-warning" id="btn-pause" onclick="controlMusic('pause')">⏸️ Пауза</button>
+                    <button class="btn btn-danger" id="btn-stop" onclick="controlMusic('stop')">⏹️ Стоп</button>
+                    <button class="btn btn-primary" id="btn-skip" onclick="controlMusic('skip')">⏭️ Пропустить</button>
+                </div>
+                
+                <div class="volume-control">
+                    <label>🔊 Громкость:</label>
+                    <input type="range" id="volume-slider" min="0" max="100" value="50" onchange="setVolume(this.value)">
+                    <span class="volume-value" id="volume-value">50%</span>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>📋 Очередь воспроизведения</h3>
+                    <ul class="queue-list" id="queue-list">
+                        <li class="loading">Загрузка...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🎤 Голосовые каналы</h2>
+            <div id="voice-channels-info" class="loading">Выберите сервер для просмотра информации о голосовых каналах</div>
+        </div>
+    </div>
+    
+    <script>
+        let currentGuildId = null;
+        let updateInterval = null;
+        
+        // Загрузка статуса бота
+        async function loadBotStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                const statusEl = document.querySelector('#bot-status .status');
+                statusEl.textContent = data.status === 'online' ? '🟢 Онлайн' : '🔴 Офлайн';
+                statusEl.className = `status ${data.status}`;
+                
+                const infoEl = document.getElementById('bot-info');
+                infoEl.innerHTML = `
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>Имя бота</strong>
+                            ${data.bot_name}
+                        </div>
+                        <div class="info-item">
+                            <strong>Серверов</strong>
+                            ${data.guilds}
+                        </div>
+                        <div class="info-item">
+                            <strong>Голосовых подключений</strong>
+                            ${data.active_voice_connections}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Ошибка загрузки статуса:', error);
+            }
+        }
+        
+        // Загрузка списка серверов
+        async function loadGuilds() {
+            try {
+                const response = await fetch('/api/guilds');
+                const data = await response.json();
+                
+                const select = document.getElementById('guild-select');
+                select.innerHTML = '<option value="">Выберите сервер...</option>';
+                
+                data.guilds.forEach(guild => {
+                    const option = document.createElement('option');
+                    option.value = guild.id;
+                    option.textContent = `${guild.name} (${guild.member_count} участников)`;
+                    select.appendChild(option);
+                });
+                
+                select.addEventListener('change', (e) => {
+                    currentGuildId = e.target.value;
+                    if (currentGuildId) {
+                        loadMusicStatus();
+                        loadVoiceChannelsInfo();
+                        startAutoUpdate();
+                    } else {
+                        document.getElementById('music-controls').style.display = 'none';
+                        stopAutoUpdate();
+                    }
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки серверов:', error);
+            }
+        }
+        
+        // Загрузка статуса музыки
+        async function loadMusicStatus() {
+            if (!currentGuildId) return;
+            
+            try {
+                const response = await fetch(`/api/guild/${currentGuildId}/music`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('music-controls').style.display = 'none';
+                    return;
+                }
+                
+                document.getElementById('music-controls').style.display = 'block';
+                
+                // Текущий трек
+                const trackName = data.current_track || 'Не воспроизводится';
+                document.getElementById('track-name').textContent = trackName;
+                
+                // Кнопки управления
+                document.getElementById('btn-pause').disabled = !data.is_playing;
+                document.getElementById('btn-resume').disabled = !data.is_paused;
+                document.getElementById('btn-stop').disabled = !data.connected;
+                document.getElementById('btn-skip').disabled = !data.is_playing && !data.is_paused;
+                
+                // Громкость
+                document.getElementById('volume-slider').value = data.volume;
+                document.getElementById('volume-value').textContent = `${data.volume}%`;
+                
+                // Очередь
+                const queueList = document.getElementById('queue-list');
+                if (data.queue_length === 0) {
+                    queueList.innerHTML = '<li class="loading">Очередь пуста</li>';
+                } else {
+                    queueList.innerHTML = data.queue.map((item, index) => 
+                        `<li class="queue-item">${index + 1}. ${item}</li>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки статуса музыки:', error);
+            }
+        }
+        
+        // Управление музыкой
+        async function controlMusic(action) {
+            if (!currentGuildId) return;
+            
+            try {
+                const response = await fetch(`/api/guild/${currentGuildId}/music/control`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action })
+                });
+                
+                const data = await response.json();
+                if (data.error) {
+                    alert('Ошибка: ' + data.error);
+                } else {
+                    setTimeout(loadMusicStatus, 500);
+                }
+            } catch (error) {
+                console.error('Ошибка управления музыкой:', error);
+                alert('Ошибка при выполнении действия');
+            }
+        }
+        
+        // Установка громкости
+        async function setVolume(volume) {
+            if (!currentGuildId) return;
+            
+            document.getElementById('volume-value').textContent = `${volume}%`;
+            
+            try {
+                await fetch(`/api/guild/${currentGuildId}/music/volume`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ volume: parseInt(volume) })
+                });
+            } catch (error) {
+                console.error('Ошибка установки громкости:', error);
+            }
+        }
+        
+        // Загрузка информации о голосовых каналах
+        async function loadVoiceChannelsInfo() {
+            if (!currentGuildId) return;
+            
+            try {
+                const response = await fetch(`/api/guild/${currentGuildId}/voice-channels`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('voice-channels-info').innerHTML = 
+                        `<div class="error">Ошибка: ${data.error}</div>`;
+                    return;
+                }
+                
+                let html = '';
+                
+                if (data.source_channel) {
+                    html += `
+                        <div class="info-item">
+                            <strong>Исходный канал:</strong>
+                            ${data.source_channel.name}
+                        </div>
+                    `;
+                } else {
+                    html += '<div class="info-item">Исходный канал не установлен</div>';
+                }
+                
+                html += `
+                    <div class="info-item">
+                        <strong>Созданных каналов:</strong>
+                        ${data.created_channels_count}
+                    </div>
+                `;
+                
+                if (data.created_channels.length > 0) {
+                    html += '<h3 style="margin-top: 15px;">Созданные каналы:</h3><ul class="voice-channels-list">';
+                    data.created_channels.forEach(channel => {
+                        html += `
+                            <li class="voice-channel-item">
+                                <span>${channel.name}</span>
+                                <span>👥 ${channel.members} участников</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+                
+                document.getElementById('voice-channels-info').innerHTML = html;
+            } catch (error) {
+                console.error('Ошибка загрузки информации о каналах:', error);
+            }
+        }
+        
+        // Автообновление
+        function startAutoUpdate() {
+            if (updateInterval) clearInterval(updateInterval);
+            updateInterval = setInterval(() => {
+                loadBotStatus();
+                if (currentGuildId) {
+                    loadMusicStatus();
+                    loadVoiceChannelsInfo();
+                }
+            }, 3000);
+        }
+        
+        function stopAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+        }
+        
+        // Инициализация
+        loadBotStatus();
+        loadGuilds();
+        startAutoUpdate();
+    </script>
+</body>
+</html>
+
