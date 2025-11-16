@@ -629,20 +629,34 @@ if WEB_PANEL_ENABLED:
     try:
         from web_panel import init_web_panel, run_web_panel
         import threading
+        import time
         
         def start_web_panel():
             """Запуск веб-панели в отдельном потоке"""
-            init_web_panel(bot, music_queues, source_voice_channels, created_voice_channels)
-            run_web_panel(port=WEB_PANEL_PORT)
+            # Небольшая задержка, чтобы бот успел инициализироваться
+            time.sleep(2)
+            try:
+                init_web_panel(bot, music_queues, source_voice_channels, created_voice_channels)
+                print(f'🚀 Запуск веб-панели на порту {WEB_PANEL_PORT}...')
+                run_web_panel(host='0.0.0.0', port=WEB_PANEL_PORT)
+            except Exception as e:
+                print(f'❌ Ошибка в веб-панели: {e}')
+                import traceback
+                traceback.print_exc()
         
         # Запускаем веб-панель в отдельном потоке
         web_thread = threading.Thread(target=start_web_panel, daemon=True)
         web_thread.start()
-        print(f'✅ Веб-панель запущена на http://localhost:{WEB_PANEL_PORT}')
-    except ImportError:
-        print('⚠️ Flask не установлен. Веб-панель недоступна. Установите: pip install flask flask-cors')
+        print(f'✅ Веб-панель инициализирована, будет доступна на http://0.0.0.0:{WEB_PANEL_PORT}')
+    except ImportError as e:
+        print(f'⚠️ Flask не установлен. Веб-панель недоступна. Установите: pip install flask flask-cors')
+        print(f'   Детали ошибки: {e}')
     except Exception as e:
         print(f'⚠️ Ошибка запуска веб-панели: {e}')
+        import traceback
+        traceback.print_exc()
+else:
+    print('ℹ️ Веб-панель отключена. Установите WEB_PANEL_ENABLED=true для включения.')
 
 
 # Запуск бота
