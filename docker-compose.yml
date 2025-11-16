@@ -23,8 +23,8 @@ services:
       - WEB_PANEL_ENABLED=${WEB_PANEL_ENABLED:-false}
       - WEB_PANEL_PORT=${WEB_PANEL_PORT:-5000}
     # Проброс порта для веб-панели (раскомментируйте, если используете веб-панель)
-    # ports:
-    #   - "5000:5000"
+    ports:
+      - "5000:5000"
     volumes:
       # Опционально: для сохранения данных или кэша
       - ./logs:/app/logs
