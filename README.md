@@ -111,8 +111,39 @@ SPOTIFY_CLIENT_SECRET=ваш_client_secret (опционально)
 6. Пригласите бота на сервер:
    - Раздел "OAuth2" → "URL Generator"
    - Выберите scopes: `bot`
-   - Выберите permissions: `Read Messages`, `Send Messages`, `Read Message History`, `Connect`, `Speak`, `Use Voice Activity`
+   - Выберите необходимые permissions (см. раздел "Необходимые права бота" ниже)
    - Скопируйте URL и откройте в браузере
+
+## Необходимые права бота
+
+Для полноценной работы бота требуются следующие права:
+
+### Обязательные права:
+- ✅ **Read Messages** - чтение сообщений в каналах
+- ✅ **Send Messages** - отправка сообщений
+- ✅ **Read Message History** - чтение истории сообщений
+- ✅ **Connect** - подключение к голосовым каналам
+- ✅ **Speak** - воспроизведение звука в голосовых каналах
+- ✅ **Use Voice Activity** - использование голосовой активности
+
+### Дополнительные права (для функции автоматического создания голосовых каналов):
+- ✅ **Manage Channels** - управление каналами (создание/удаление)
+- ✅ **Move Members** - перемещение участников между каналами
+
+### Рекомендуемые права:
+- ✅ **Embed Links** - встраивание ссылок в сообщения
+- ✅ **Attach Files** - прикрепление файлов (если используется функционал повтора сообщений с вложениями)
+
+**Важно**: Без прав **Manage Channels** и **Move Members** функция `!svc` (автоматическое создание голосовых каналов) работать не будет. Бот сможет только воспроизводить музыку, но не сможет создавать новые каналы.
+
+### Быстрая настройка прав через OAuth2 URL Generator:
+1. Перейдите в раздел "OAuth2" → "URL Generator"
+2. Выберите scope: `bot`
+3. В разделе "Bot Permissions" выберите все необходимые права или используйте готовый набор:
+   - **Text Permissions**: Read Messages, Send Messages, Read Message History, Embed Links, Attach Files
+   - **Voice Permissions**: Connect, Speak, Use Voice Activity, Move Members
+   - **Advanced Permissions**: Manage Channels
+4. Скопируйте сгенерированный URL и откройте его в браузере для приглашения бота
 
 ## Получение ключей Spotify API (опционально)
 
