@@ -493,50 +493,24 @@ async def volume(ctx, volume: int = None):
 
 # ==================== АВТОМАТИЧЕСКОЕ СОЗДАНИЕ ГОЛОСОВЫХ КАНАЛОВ ====================
 
-@bot.command(name='setvoicechannel', aliases=['svc'])
-async def set_voice_channel(ctx, *, channel_input: str = None):
+@bot.hybrid_command(name='setvoicechannel', aliases=['svc'], description='Установка исходного голосового канала для авто-создания')
+@app_commands.describe(channel='Голосовой канал (по умолчанию текущий)')
+async def set_voice_channel(ctx, channel: discord.VoiceChannel = None):
     """Установка исходного голосового канала для автоматического создания новых каналов
     
-    Использование: !setvoicechannel #канал
-    Или: !svc (если вы находитесь в голосовом канале)
+    Использование: /setvoicechannel [канал]
+    Или: !svc [канал]
     """
-    channel = None
-    
-    if channel_input:
-        # Пытаемся конвертировать через конвертер discord.py
-        try:
-            converter = commands.VoiceChannelConverter()
-            channel = await converter.convert(ctx, channel_input)
-        except commands.BadArgument:
-            # Если конвертер не сработал, пытаемся найти канал вручную
-            # Извлекаем ID из упоминания <#ID> или используем как ID
-            channel_id = None
-            if channel_input.startswith('<#') and channel_input.endswith('>'):
-                try:
-                    channel_id = int(channel_input[2:-1])
-                except ValueError:
-                    pass
-            else:
-                try:
-                    channel_id = int(channel_input)
-                except ValueError:
-                    # Ищем по имени
-                    channel = discord.utils.get(ctx.guild.voice_channels, name=channel_input)
-            
-            if channel_id and not channel:
-                found_channel = ctx.guild.get_channel(channel_id)
-                if found_channel and isinstance(found_channel, discord.VoiceChannel):
-                    channel = found_channel
-    
-    # Если канал не найден и не указан, пытаемся получить канал автора команды
+    # Если канал не указан, пытаемся получить канал автора команды
     if channel is None:
         if ctx.author.voice and ctx.author.voice.channel:
             channel = ctx.author.voice.channel
         else:
-            await ctx.send('❌ Укажите голосовой канал! Использование: `!setvoicechannel #канал`\n'
+            await ctx.send('❌ Укажите голосовой канал! Использование: `/setvoicechannel [канал]`\n'
                           'Или зайдите в голосовой канал и используйте команду без параметров.')
             return
     
+    # Проверка типа канала (на случай если discord.py пропустил что-то странное, хотя type hint должен работать)
     if not isinstance(channel, discord.VoiceChannel):
         await ctx.send('❌ Указанный канал не является голосовым каналом!')
         return
@@ -547,7 +521,7 @@ async def set_voice_channel(ctx, *, channel_input: str = None):
                    f'Теперь при заходе в этот канал будет создаваться новый канал с максимальным качеством.')
 
 
-@bot.command(name='removevoicechannel', aliases=['rvc'])
+@bot.hybrid_command(name='removevoicechannel', aliases=['rvc'], description='Удаление настройки исходного голосового канала')
 async def remove_voice_channel(ctx):
     """Удаление настройки исходного голосового канала"""
     if ctx.guild.id in source_voice_channels:
