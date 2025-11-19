@@ -9,6 +9,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import yt_dlp
 
+import json
+
 # Загружаем переменные окружения
 load_dotenv()
 
@@ -16,6 +18,9 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SOURCE_CHANNEL_ID = int(os.getenv('SOURCE_CHANNEL_ID', 0))  # ID канала, из которого повторять
 TARGET_CHANNEL_ID = int(os.getenv('TARGET_CHANNEL_ID', 0))  # ID канала, в который повторять (0 = тот же канал)
+
+# Файл для хранения настроек голосовых каналов
+VOICE_CHANNELS_FILE = 'voice_channels.json'
 
 # Настройки Spotify (опционально)
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID', '')
@@ -46,9 +51,29 @@ if SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET:
 # Словарь для хранения очередей воспроизведения для каждого сервера
 music_queues = {}
 
+def load_voice_channels():
+    """Загружает настройки голосовых каналов из файла"""
+    if os.path.exists(VOICE_CHANNELS_FILE):
+        try:
+            with open(VOICE_CHANNELS_FILE, 'r') as f:
+                data = json.load(f)
+                # Конвертируем ключи (guild_id) обратно в int
+                return {int(k): v for k, v in data.items()}
+        except Exception as e:
+            print(f"Ошибка загрузки настроек каналов: {e}")
+    return {}
+
+def save_voice_channels():
+    """Сохраняет настройки голосовых каналов в файл"""
+    try:
+        with open(VOICE_CHANNELS_FILE, 'w') as f:
+            json.dump(source_voice_channels, f)
+    except Exception as e:
+        print(f"Ошибка сохранения настроек каналов: {e}")
+
 # Словарь для хранения исходных голосовых каналов для каждого сервера
 # Ключ: guild_id, Значение: voice_channel_id
-source_voice_channels = {}
+source_voice_channels = load_voice_channels()
 
 # Множество для хранения созданных ботом голосовых каналов
 # Ключ: guild_id, Значение: set(channel_id)
@@ -517,6 +542,7 @@ async def set_voice_channel(ctx, *, channel_input: str = None):
         return
     
     source_voice_channels[ctx.guild.id] = channel.id
+    save_voice_channels()
     await ctx.send(f'✅ Исходный голосовой канал установлен: {channel.mention}\n'
                    f'Теперь при заходе в этот канал будет создаваться новый канал с максимальным качеством.')
 
@@ -526,6 +552,7 @@ async def remove_voice_channel(ctx):
     """Удаление настройки исходного голосового канала"""
     if ctx.guild.id in source_voice_channels:
         del source_voice_channels[ctx.guild.id]
+        save_voice_channels()
         await ctx.send('✅ Настройка исходного голосового канала удалена')
     else:
         await ctx.send('❌ Исходный голосовой канал не установлен')
