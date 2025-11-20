@@ -28,7 +28,10 @@ COPY web_panel.py .
 COPY templates/ ./templates/
 
 # Создаём пользователя без прав root для безопасности
-RUN useradd -m -u 1000 botuser && chown -R botuser:botuser /app
+RUN useradd -m -u 1000 botuser && \
+    mkdir -p /app/data && \
+    chown -R botuser:botuser /app
+
 USER botuser
 
 # Устанавливаем переменную окружения Python

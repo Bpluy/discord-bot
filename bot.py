@@ -20,7 +20,10 @@ SOURCE_CHANNEL_ID = int(os.getenv('SOURCE_CHANNEL_ID', 0))  # ID канала, �
 TARGET_CHANNEL_ID = int(os.getenv('TARGET_CHANNEL_ID', 0))  # ID канала, в который повторять (0 = тот же канал)
 
 # Файл для хранения настроек голосовых каналов
-VOICE_CHANNELS_FILE = 'voice_channels.json'
+VOICE_CHANNELS_FILE = os.path.join('data', 'voice_channels.json')
+
+# Убедимся, что директория data существует
+os.makedirs('data', exist_ok=True)
 
 # Настройки Spotify (опционально)
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID', '')
